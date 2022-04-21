@@ -10,11 +10,27 @@ import { ShoppingListService } from './shopping-list.service';
 })
 export class ShoppingListComponent implements OnInit, OnDestroy {
 
+  //#region Properties and References
+
   ingredients: Ingredient[];
+
+  //#endregion
+
+  //#region Variables
 
   private subscription: Subscription;
 
+  //#endregion
+
   constructor(private slService: ShoppingListService) { }
+
+  //#region Public Methods
+
+  onEditItem(id: number): void {
+    this.slService.startedEditing.next(id);
+  }
+
+  //#endregion
 
   ngOnInit(): void {
     this.ingredients = this.slService.getIngredients();
