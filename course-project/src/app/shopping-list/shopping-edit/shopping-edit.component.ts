@@ -16,14 +16,15 @@ export class ShoppingEditComponent implements OnInit, OnDestroy {
   @ViewChild('f', {static: false}) slForm: NgForm;
 
   editMode: boolean = false;
-  editedItemIndex: number;
-  editedItem: Ingredient;
 
   //#endregion
 
   //#region Variables
 
   private subs: Subscription[] = [];
+  
+  private editedItemIndex: number;
+  private editedItem: Ingredient;
 
   //#endregion
 
