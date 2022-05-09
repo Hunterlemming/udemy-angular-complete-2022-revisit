@@ -8,6 +8,7 @@ import { Recipe } from './recipe.model';
   providedIn: 'root'
 })
 export class RecipeService {
+  recipesChanged: Subject<Recipe[]> = new Subject<Recipe[]>();
 
   constructor(private slService: ShoppingListService) { }
 
@@ -36,6 +37,16 @@ export class RecipeService {
 
   getRecipes(): Recipe[] {
     return this.recipes.slice();
+  }
+  
+  addRecipe(recipe: Recipe): void {
+    this.recipes.push(recipe);
+    this.recipesChanged.next(this.getRecipes());
+  }
+  
+  updateRecipe(index: number, newRecipe: Recipe): void {
+    this.recipes[index] = newRecipe;
+    this.recipesChanged.next(this.getRecipes());
   }
 
   addIngredientsToShoppingList(ingredients: Ingredient[]): void {
