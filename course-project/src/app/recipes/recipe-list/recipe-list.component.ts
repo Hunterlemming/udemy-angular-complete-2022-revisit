@@ -49,6 +49,7 @@ export class RecipeListComponent implements OnInit, OnDestroy {
   //#endregion
 
   ngOnInit(): void {
+    this.recipes = this.recipeService.getRecipes();
     this.subs.push(
       this.subscribeToRecipesChanged()
     );

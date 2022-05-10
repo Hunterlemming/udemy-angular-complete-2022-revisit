@@ -26,6 +26,11 @@ export class RecipeDetailComponent implements OnInit {
     // this.router.navigate(['/repipes', this.id, 'edit']);
   }
 
+  onDeleteRecipe(): void {
+    this.recipeService.deleteRecipe(this.id);
+    this.router.navigate(['..'], {relativeTo: this.route});
+  }
+
   ngOnInit(): void {
     this.route.params.subscribe(
       (params: Params) => {
