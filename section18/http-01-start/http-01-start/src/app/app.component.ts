@@ -1,36 +1,38 @@
-import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { map } from 'rxjs/operators';
+import { Post } from './post.model';
+import { PostService } from './post.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
 
   //#region Properties
   
-  loadedPosts = [];
+  loadedPosts: Post[] = [];
+  isFetching: boolean = false;
+  error = null;
 
   //#endregion
 
   //#region Variables
 
-  private baseUrl: string = 'https://ng-complete-guide-80289-default-rtdb.europe-west1.firebasedatabase.app/'
+  private subscriptions: Subscription[] = [];
 
   //#endregion
 
-constructor(private http: HttpClient) {}
+  constructor(private postService: PostService) {}
 
-  ngOnInit() {
-    this.fetchPosts();
-  }
+  //#region Public Methods
 
-  onCreatePost(postData: { title: string; content: string }) {
+  onCreatePost(postData: Post) {
     // Send Http request
-    this.http.post(this.baseUrl + 'posts.json', postData)
-      .subscribe(response => console.log(response));
+    this.postService.createAndStorePost(postData.title, postData.content);
   }
 
   onFetchPosts() {
@@ -40,15 +42,55 @@ constructor(private http: HttpClient) {}
 
   onClearPosts() {
     // Send Http request
+    this.postService.deletePosts()
+      .subscribe(
+        response => {
+          this.loadedPosts = [];
+        }
+      );
   }
 
-  private fetchPosts() {
-    this.http.get(this.baseUrl + 'posts.json')
-      .pipe(
-        map(responseData => {
-          return Object.keys(responseData)
-            .map(key => ({...responseData[key], id: key}))
-        })
-      ).subscribe(posts => console.log(posts));
+  onHandleError() {
+    this.error = null;
   }
+
+  //#endregion
+
+  //#region Private Methods
+
+  private subscribeToPostServiceError(): Subscription {
+    return this.postService.error
+      .subscribe(
+        errorMessage => this.error = errorMessage
+      );
+  }
+
+  private fetchPosts(): void {
+    this.isFetching = true;
+    this.postService.fetchPosts()
+      .subscribe(
+        posts => {
+          this.isFetching = false;
+          this.loadedPosts = posts;
+        },
+        (error: HttpErrorResponse) => {
+          console.error(error);
+          this.error = error.message;
+          this.isFetching = false;
+        });
+  }
+
+  //#endregion
+
+  ngOnInit() {
+    this.subscriptions.push(
+      this.subscribeToPostServiceError()
+    );
+    this.fetchPosts();
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
 }
