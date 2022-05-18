@@ -27,4 +27,12 @@ export class DataStorageService {
     );
   }
 
+  fetchRecipes(): void {
+    this.http.get<Recipe[]>(
+      this.recipeUrl
+    ).subscribe(
+      response => this.recipeService.setRecipes(response)
+    );
+  }
+
 }
