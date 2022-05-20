@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 import { Recipe } from '../recipes/recipe.model';
 import { RecipeService } from '../recipes/recipe.service';
 
@@ -28,8 +28,8 @@ export class DataStorageService {
     );
   }
 
-  fetchRecipes(): void {
-    this.http.get<Recipe[]>(
+  fetchRecipes(): Observable<Recipe[]> {
+    return this.http.get<Recipe[]>(
       this.recipeUrl
     ).pipe(
       map(recipes =>{
@@ -39,9 +39,10 @@ export class DataStorageService {
             ingredients: recipe.ingredients ? recipe.ingredients : []
           };
         });
+      }),
+      tap(recipes => {
+        this.recipeService.setRecipes(recipes)
       })
-    ).subscribe(
-      response => this.recipeService.setRecipes(response)
     );
   }
 
