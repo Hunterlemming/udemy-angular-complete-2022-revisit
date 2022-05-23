@@ -7,7 +7,21 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AuthComponent implements OnInit {
 
+  //#region Properties
+
+  isLoginMode: boolean = true;
+
+  //#endregion
+
   constructor() { }
+
+  //#region Public Methods
+
+  onSwitchMode(): void {
+    this.isLoginMode = !this.isLoginMode;
+  }
+
+  //#endregion
 
   ngOnInit(): void {
   }
