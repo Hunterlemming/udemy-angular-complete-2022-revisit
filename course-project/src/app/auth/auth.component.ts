@@ -12,6 +12,8 @@ export class AuthComponent implements OnInit {
   //#region Properties
 
   isLoginMode: boolean = true;
+  isLoading: boolean = false;
+  errorMessage: string = null;
 
   //#endregion
 
@@ -24,19 +26,21 @@ export class AuthComponent implements OnInit {
     const email = form.value.email;
     const password = form.value.password;
 
+    this.isLoading = true;
     if (this.isLoginMode) {
-
+      // ...
     } else {
-
       this.authService.signUp(email, password).subscribe({
         next: resData => {
           console.log(resData);
+          this.isLoading = false;
         },
         error: error => {
           console.log(error);
+          this.errorMessage = 'An error occured!';
+          this.isLoading = false;
         }
       });
-
     }
     
     form.reset();
