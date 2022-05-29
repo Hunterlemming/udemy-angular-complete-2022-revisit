@@ -45,7 +45,7 @@ export class AuthService {
       } 
     ).pipe(
       catchError(this.handleError),
-      tap(this.handleAuthentication)
+      tap(resp => this.handleAuthentication(resp))
     );
   }
 
@@ -59,7 +59,7 @@ export class AuthService {
       }
     ).pipe(
       catchError(this.handleError),
-      tap(this.handleAuthentication)
+      tap(resp => this.handleAuthentication(resp))
     );
   }
 
