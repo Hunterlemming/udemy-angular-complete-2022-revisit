@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, Observable, Subject, tap, throwError } from 'rxjs';
+import { User } from './user.model';
 
 export interface AuthResponseData {
   idToken: string;
@@ -16,11 +17,17 @@ export interface AuthResponseData {
 })
 export class AuthService {
 
+  //#region Observables
+
+  user = new Subject<User>();
+
+  //#endregion
+
   //#region Vatiables
 
-  private readonly apiKey = 'AIzaSyBFopsPBWyWlKzHaFB-veP9-SZtWMFM5Vg';
-  private readonly createEmailPasswordUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${this.apiKey}`;
-  private readonly signInEmailPasswordUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this.apiKey}`;
+  private readonly _apiKey = 'AIzaSyBFopsPBWyWlKzHaFB-veP9-SZtWMFM5Vg';
+  private readonly _createEmailPasswordUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${this._apiKey}`;
+  private readonly _signInEmailPasswordUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this._apiKey}`;
 
   //#endregion
 
@@ -30,27 +37,29 @@ export class AuthService {
 
   signUp(email: string, password: string): Observable<AuthResponseData> {
     return this.http.post<AuthResponseData>(
-      this.createEmailPasswordUrl,
+      this._createEmailPasswordUrl,
       { 
         email: email, 
         password: password,
         returnSecureToken: true
       } 
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      tap(this.handleAuthentication)
     );
   }
 
   login(email: string, password: string) {
     return this.http.post<AuthResponseData>(
-      this.signInEmailPasswordUrl,
+      this._signInEmailPasswordUrl,
       {
         email: email,
         password: password,
         returnSecureToken: true        
       }
     ).pipe(
-      catchError(this.handleError)
+      catchError(this.handleError),
+      tap(this.handleAuthentication)
     );
   }
 
@@ -58,6 +67,19 @@ export class AuthService {
 
   //#region Private Methods
 
+  private handleAuthentication(authData: AuthResponseData): void {
+    const expirationDate = new Date(
+      new Date().getTime() + (+authData.expiresIn * 1000)
+    );
+    const user = new User(
+      authData.email, 
+      authData.localId, 
+      authData.idToken, 
+      expirationDate
+    );
+    this.user.next(user);
+  }
+  
   private handleError(errorRes: HttpErrorResponse): Observable<never> {
     let errorMessage = 'An unknown error occured!';
     // console.log(errorRes);
