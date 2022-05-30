@@ -1,6 +1,7 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable, tap } from 'rxjs';
+import { exhaustMap, map, Observable, take, tap } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
 import { Recipe } from '../recipes/recipe.model';
 import { RecipeService } from '../recipes/recipe.service';
 
@@ -16,7 +17,11 @@ export class DataStorageService {
 
   //#endregion
 
-  constructor(private http: HttpClient, private recipeService: RecipeService) { }
+  constructor(
+    private http: HttpClient, 
+    private recipeService: RecipeService,
+    private authService: AuthService
+  ) { }
 
   storeRecipes(): void {
     const recipes = this.recipeService.getRecipes();
@@ -29,9 +34,17 @@ export class DataStorageService {
   }
 
   fetchRecipes(): Observable<Recipe[]> {
-    return this.http.get<Recipe[]>(
-      this.recipeUrl
-    ).pipe(
+    return this.authService.user.pipe(
+      take(1),
+      exhaustMap(user => {
+        return this.http.get<Recipe[]>(
+          this.recipeUrl,
+          {
+            params: new HttpParams()
+              .set('auth', user.token)
+          }
+        );
+      }),
       map(recipes =>{
         return recipes.map(recipe => {
           return {

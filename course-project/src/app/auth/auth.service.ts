@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, Observable, Subject, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, Observable, Subject, tap, throwError } from 'rxjs';
 import { User } from './user.model';
 
 export interface AuthResponseData {
@@ -19,7 +19,7 @@ export class AuthService {
 
   //#region Observables
 
-  user = new Subject<User>();
+  user = new BehaviorSubject<User>(null);
 
   //#endregion
 
