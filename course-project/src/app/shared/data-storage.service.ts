@@ -34,17 +34,9 @@ export class DataStorageService {
   }
 
   fetchRecipes(): Observable<Recipe[]> {
-    return this.authService.user.pipe(
-      take(1),
-      exhaustMap(user => {
-        return this.http.get<Recipe[]>(
-          this.recipeUrl,
-          {
-            params: new HttpParams()
-              .set('auth', user.token)
-          }
-        );
-      }),
+    return this.http.get<Recipe[]>(
+      this.recipeUrl
+    ).pipe(
       map(recipes =>{
         return recipes.map(recipe => {
           return {
