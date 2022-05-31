@@ -1,5 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { BehaviorSubject, catchError, Observable, Subject, tap, throwError } from 'rxjs';
 import { User } from './user.model';
 
@@ -31,7 +32,10 @@ export class AuthService {
 
   //#endregion
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private router: Router
+  ) { }
 
   //#region Public Methods
 
@@ -61,6 +65,11 @@ export class AuthService {
       catchError(this.handleError),
       tap(resp => this.handleAuthentication(resp))
     );
+  }
+
+  logout(rerouteDestination: string = '/auth'): void {
+    this.user.next(null);
+    this.router.navigate([rerouteDestination]);
   }
 
   //#endregion
