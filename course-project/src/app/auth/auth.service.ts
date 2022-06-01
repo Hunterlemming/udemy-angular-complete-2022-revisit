@@ -2,7 +2,8 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, catchError, Observable, Subject, tap, throwError } from 'rxjs';
-import { User } from './user.model';
+import { LocalStorageKeys } from '../shared/local-storage-keys';
+import { User, UserData } from './user.model';
 
 export interface AuthResponseData {
   idToken: string;
@@ -67,6 +68,18 @@ export class AuthService {
     );
   }
 
+  autoLogin(): void {
+    const loadedUser: User = User.toUser(
+      JSON.parse(localStorage.getItem(LocalStorageKeys.userData)) as UserData
+    );
+    if (!loadedUser) {
+      return;
+    }
+    if (loadedUser.token) {
+      this.user.next(loadedUser);
+    }
+  }
+
   logout(rerouteDestination: string = '/auth'): void {
     this.user.next(null);
     this.router.navigate([rerouteDestination]);
@@ -87,6 +100,7 @@ export class AuthService {
       expirationDate
     );
     this.user.next(user);
+    localStorage.setItem(LocalStorageKeys.userData, JSON.stringify(user));
   }
   
   private handleError(errorRes: HttpErrorResponse): Observable<never> {
