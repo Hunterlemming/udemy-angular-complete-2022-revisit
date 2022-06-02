@@ -27,12 +27,16 @@ export class User {
     return this._token;
   }
 
+  get remainingTime(): number {
+    return this._tokenExpirationDate.getTime() - (new Date().getTime());
+  }
+
   //#endregion
 
   //#region Static Functions
 
   static toUser(obj: UserData): User {
-    if (!obj && !isUserData(obj)) {
+    if (!obj || !isUserData(obj)) {
       return null;
     }
     return new User(obj.id, obj.email, obj._token, new Date(obj._tokenExpirationDate));

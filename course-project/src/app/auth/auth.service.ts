@@ -25,11 +25,17 @@ export class AuthService {
 
   //#endregion
 
-  //#region Vatiables
+  //#region Static Variables
 
-  private readonly _apiKey = 'AIzaSyBFopsPBWyWlKzHaFB-veP9-SZtWMFM5Vg';
-  private readonly _createEmailPasswordUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${this._apiKey}`;
-  private readonly _signInEmailPasswordUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this._apiKey}`;
+  private static readonly API_KEY = 'AIzaSyBFopsPBWyWlKzHaFB-veP9-SZtWMFM5Vg';
+  private static readonly CREATE_EMAIL_PASSWORD_URL = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${AuthService.API_KEY}`;
+  private static readonly SIGNIN_EMAIL_PASSWORD_URL = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${AuthService.API_KEY}`;
+
+  //#endregion
+
+  //#region Class Variables
+
+  private _tokenExpirationTimer: any;   //NodeJS.Timeout
 
   //#endregion
 
@@ -42,7 +48,7 @@ export class AuthService {
 
   signUp(email: string, password: string): Observable<AuthResponseData> {
     return this.http.post<AuthResponseData>(
-      this._createEmailPasswordUrl,
+      AuthService.CREATE_EMAIL_PASSWORD_URL,
       { 
         email: email, 
         password: password,
@@ -56,7 +62,7 @@ export class AuthService {
 
   login(email: string, password: string) {
     return this.http.post<AuthResponseData>(
-      this._signInEmailPasswordUrl,
+      AuthService.SIGNIN_EMAIL_PASSWORD_URL,
       {
         email: email,
         password: password,
@@ -77,12 +83,24 @@ export class AuthService {
     }
     if (loadedUser.token) {
       this.user.next(loadedUser);
+      this.autoLogout(loadedUser.remainingTime);
     }
   }
 
   logout(rerouteDestination: string = '/auth'): void {
     this.user.next(null);
     this.router.navigate([rerouteDestination]);
+    localStorage.removeItem(LocalStorageKeys.userData);
+    if (this._tokenExpirationTimer) {
+      clearTimeout(this._tokenExpirationTimer);
+    }
+    this._tokenExpirationTimer = null;
+  }
+
+  autoLogout(expirationDuration: number): void {
+    this._tokenExpirationTimer = setTimeout(() => {
+      this.logout();
+    }, expirationDuration);
   }
 
   //#endregion
@@ -100,6 +118,7 @@ export class AuthService {
       expirationDate
     );
     this.user.next(user);
+    this.autoLogout(+authData.expiresIn * 1000);
     localStorage.setItem(LocalStorageKeys.userData, JSON.stringify(user));
   }
   
