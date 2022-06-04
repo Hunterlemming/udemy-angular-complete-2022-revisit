@@ -1,8 +1,9 @@
-import { Component, ComponentFactoryResolver, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { AlertComponent } from '../shared/alert/alert.component';
+import { PlaceholderDirective } from '../shared/placeholder/placeholder.directive';
 import { AuthResponseData, AuthService } from './auth.service';
 
 @Component({
@@ -11,6 +12,13 @@ import { AuthResponseData, AuthService } from './auth.service';
   styleUrls: ['./auth.component.css']
 })
 export class AuthComponent implements OnInit {
+
+  //#region References
+
+  @ViewChild(PlaceholderDirective, {static: false}) 
+  alertHost: PlaceholderDirective; 
+
+  //#endregion
 
   //#region Properties
 
@@ -23,7 +31,6 @@ export class AuthComponent implements OnInit {
   constructor(
     private authService: AuthService, 
     private router: Router,
-    private componentFactoryResolver: ComponentFactoryResolver
   ) { }
 
   //#region Public Methods
@@ -72,8 +79,9 @@ export class AuthComponent implements OnInit {
   //#region Private Methods
 
   private showErrorAlert(errorMessage: string): void {
-    const alertComponentFactory = this.componentFactoryResolver.resolveComponentFactory(AlertComponent);
-    
+    const hostViewContainerRef = this.alertHost.viewContainerRef;
+    hostViewContainerRef.clear();
+    hostViewContainerRef.createComponent<AlertComponent>(AlertComponent);
   }
 
   //#endregion
