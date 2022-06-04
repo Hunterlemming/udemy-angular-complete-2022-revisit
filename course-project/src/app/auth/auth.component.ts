@@ -60,6 +60,10 @@ export class AuthComponent implements OnInit {
     this.isLoginMode = !this.isLoginMode;
   }
 
+  onHandleError(): void {
+    this.errorMessage = null;
+  }
+
   //#endregion
 
   ngOnInit(): void {
